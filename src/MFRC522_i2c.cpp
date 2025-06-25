@@ -5,11 +5,11 @@
 /////////////////////////////////////////////////////////////////////////////////////
 
 /**
- * Writes a byte to the specified register in the MFRC522_I2C chip.
+ * Writes a uint8_t to the specified register in the MFRC522_I2C chip.
  * The interface is described in the datasheet section 8.1.2.
  */
 void MFRC522_I2C::PCD_WriteRegister(        MFRC522::PCD_Register reg,               ///< The register to write to. One of the PCD_Register enums.
-                                            byte value              ///< The value to write.
+                                            uint8_t value              ///< The value to write.
 ) {
         _wire.beginTransmission(_chipAddress);
         _wire.write(reg);
@@ -22,24 +22,24 @@ void MFRC522_I2C::PCD_WriteRegister(        MFRC522::PCD_Register reg,          
  * The interface is described in the datasheet section 8.1.2.
  */
 void MFRC522_I2C::PCD_WriteRegister(        MFRC522::PCD_Register reg,               ///< The register to write to. One of the PCD_Register enums.
-                                                                        byte count,             ///< The number of bytes to write to the register
-                                                                        byte *values    ///< The values to write. Byte array.
+                                                                        uint8_t count,             ///< The number of bytes to write to the register
+                                                                        uint8_t *values    ///< The values to write. uint8_t array.
                                                                 ) {
         _wire.beginTransmission(_chipAddress);
         _wire.write(reg);
-        for (byte index = 0; index < count; index++) {
+        for (uint8_t index = 0; index < count; index++) {
                 _wire.write(values[index]);
         }
         _wire.endTransmission();
 } // End PCD_WriteRegister()
 
 /**
- * Reads a byte from the specified register in the MFRC522_I2C chip.
+ * Reads a uint8_t from the specified register in the MFRC522_I2C chip.
  * The interface is described in the datasheet section 8.1.2.
  */
-byte MFRC522_I2C::PCD_ReadRegister( MFRC522::PCD_Register reg        ///< The register to read from. One of the PCD_Register enums.
+uint8_t MFRC522_I2C::PCD_ReadRegister( MFRC522::PCD_Register reg        ///< The register to read from. One of the PCD_Register enums.
                                                                 ) {
-        byte value;
+        uint8_t value;
         //digitalWrite(_chipSelectPin, LOW);                    // Select slave
         _wire.beginTransmission(_chipAddress);
         _wire.write(reg);
@@ -56,15 +56,15 @@ byte MFRC522_I2C::PCD_ReadRegister( MFRC522::PCD_Register reg        ///< The re
  * The interface is described in the datasheet section 8.1.2.
  */
 void MFRC522_I2C::PCD_ReadRegister( MFRC522::PCD_Register reg,               ///< The register to read from. One of the PCD_Register enums.
-                                                                byte count,             ///< The number of bytes to read
-                                                                byte *values,   ///< Byte array to store the values in.
-                                                                byte rxAlign    ///< Only bit positions rxAlign..7 in values[0] are updated.
+                                                                uint8_t count,             ///< The number of bytes to read
+                                                                uint8_t *values,   ///< uint8_t array to store the values in.
+                                                                uint8_t rxAlign    ///< Only bit positions rxAlign..7 in values[0] are updated.
                                                                 ) {
         if (count == 0) {
                 return;
         }
-        byte address = reg;
-        byte index = 0;                                                 // Index in values array.
+        uint8_t address = reg;
+        uint8_t index = 0;                                                 // Index in values array.
         _wire.beginTransmission(_chipAddress);
         _wire.write(address);
         _wire.endTransmission();
@@ -72,12 +72,12 @@ void MFRC522_I2C::PCD_ReadRegister( MFRC522::PCD_Register reg,               ///
         while (_wire.available()) {
                 if (index == 0 && rxAlign) {            // Only update bit positions rxAlign..7 in values[0]
                         // Create bit mask for bit positions rxAlign..7
-                        byte mask = 0;
-                        for (byte i = rxAlign; i <= 7; i++) {
+                        uint8_t mask = 0;
+                        for (uint8_t i = rxAlign; i <= 7; i++) {
                                 mask |= (1 << i);
                         }
                         // Read value and tell that we want to read the same address again.
-                        byte value = _wire.read();
+                        uint8_t value = _wire.read();
                         // Apply mask to both current value of values[0] and the new data in value.
                         values[0] = (values[index] & ~mask) | (value & mask);
                 }

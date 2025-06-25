@@ -8,11 +8,11 @@
 #include <MFRC522.h>
 
 /**
- * Writes a byte to the specified register in the MFRC522_SPI chip.
+ * Writes a uint8_t to the specified register in the MFRC522_SPI chip.
  * The interface is described in the datasheet section 8.1.2.
  */
 void MFRC522_SPI::PCD_WriteRegister(	MFRC522::PCD_Register reg,	///< The register to write to. One of the PCD_Register enums.
-									byte value			///< The value to write.
+									uint8_t value			///< The value to write.
 								) {
 	_spiClass->beginTransaction(_spiSettings);	// Set the settings to work with SPI bus
 	digitalWrite(_chipSelectPin, LOW);		// Select slave
@@ -27,13 +27,13 @@ void MFRC522_SPI::PCD_WriteRegister(	MFRC522::PCD_Register reg,	///< The registe
  * The interface is described in the datasheet section 8.1.2.
  */
 void MFRC522_SPI::PCD_WriteRegister(	MFRC522::PCD_Register reg,	///< The register to write to. One of the PCD_Register enums.
-									byte count,			///< The number of bytes to write to the register
-									byte *values		///< The values to write. Byte array.
+									uint8_t count,			///< The number of bytes to write to the register
+									uint8_t *values		///< The values to write. uint8_t array.
 								) {
 	_spiClass->beginTransaction(_spiSettings);	// Set the settings to work with SPI bus
 	digitalWrite(_chipSelectPin, LOW);		// Select slave
 	_spiClass->transfer(reg << 1);						// MSB == 0 is for writing. LSB is not used in address. Datasheet section 8.1.2.3.
-	for (byte index = 0; index < count; index++) {
+	for (uint8_t index = 0; index < count; index++) {
 		_spiClass->transfer(values[index]);
 	}
 	digitalWrite(_chipSelectPin, HIGH);		// Release slave again
@@ -41,12 +41,12 @@ void MFRC522_SPI::PCD_WriteRegister(	MFRC522::PCD_Register reg,	///< The registe
 } // End PCD_WriteRegister()
 
 /**
- * Reads a byte from the specified register in the MFRC522_SPI chip.
+ * Reads a uint8_t from the specified register in the MFRC522_SPI chip.
  * The interface is described in the datasheet section 8.1.2.
  */
-byte MFRC522_SPI::PCD_ReadRegister(	MFRC522::PCD_Register reg	///< The register to read from. One of the PCD_Register enums.
+uint8_t MFRC522_SPI::PCD_ReadRegister(	MFRC522::PCD_Register reg	///< The register to read from. One of the PCD_Register enums.
 								) {
-	byte value;
+	uint8_t value;
 	_spiClass->beginTransaction(_spiSettings);	// Set the settings to work with SPI bus
 	digitalWrite(_chipSelectPin, LOW);			// Select slave
 	_spiClass->transfer(0x80 | (reg << 1));					// MSB == 1 is for reading. LSB is not used in address. Datasheet section 8.1.2.3
@@ -61,25 +61,25 @@ byte MFRC522_SPI::PCD_ReadRegister(	MFRC522::PCD_Register reg	///< The register 
  * The interface is described in the datasheet section 8.1.2.
  */
 void MFRC522_SPI::PCD_ReadRegister(	MFRC522::PCD_Register reg,	///< The register to read from. One of the PCD_Register enums.
-								byte count,			///< The number of bytes to read
-								byte *values,		///< Byte array to store the values in.
-								byte rxAlign		///< Only bit positions rxAlign..7 in values[0] are updated.
+								uint8_t count,			///< The number of bytes to read
+								uint8_t *values,		///< uint8_t array to store the values in.
+								uint8_t rxAlign		///< Only bit positions rxAlign..7 in values[0] are updated.
 								) {
 	if (count == 0) {
 		return;
 	}
 	//Serial.print(F("Reading ")); 	Serial.print(count); Serial.println(F(" bytes from register."));
-	byte address = 0x80 | (reg << 1);				// MSB == 1 is for reading. LSB is not used in address. Datasheet section 8.1.2.3.
-	byte index = 0;							// Index in values array.
+	uint8_t address = 0x80 | (reg << 1);				// MSB == 1 is for reading. LSB is not used in address. Datasheet section 8.1.2.3.
+	uint8_t index = 0;							// Index in values array.
 	_spiClass->beginTransaction(_spiSettings);	// Set the settings to work with SPI bus
 	digitalWrite(_chipSelectPin, LOW);		// Select slave
 	count--;								// One read is performed outside of the loop
 	_spiClass->transfer(address);					// Tell MFRC522_SPI which address we want to read
 	if (rxAlign) {		// Only update bit positions rxAlign..7 in values[0]
 		// Create bit mask for bit positions rxAlign..7
-		byte mask = (0xFF << rxAlign) & 0xFF;
+		uint8_t mask = (0xFF << rxAlign) & 0xFF;
 		// Read value and tell that we want to read the same address again.
-		byte value = _spiClass->transfer(address);
+		uint8_t value = _spiClass->transfer(address);
 		// Apply mask to both current value of values[0] and the new data in value.
 		values[0] = (values[0] & ~mask) | (value & mask);
 		index++;
@@ -88,7 +88,7 @@ void MFRC522_SPI::PCD_ReadRegister(	MFRC522::PCD_Register reg,	///< The register
 		values[index] = _spiClass->transfer(address);	// Read value and tell that we want to read the same address again.
 		index++;
 	}
-	values[index] = _spiClass->transfer(0);			// Read the final byte. Send 0 to stop reading.
+	values[index] = _spiClass->transfer(0);			// Read the final uint8_t. Send 0 to stop reading.
 	digitalWrite(_chipSelectPin, HIGH);			// Release slave again
 	_spiClass->endTransaction(); // Stop using the SPI bus
 } // End PCD_ReadRegister()

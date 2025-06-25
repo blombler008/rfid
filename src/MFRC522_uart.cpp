@@ -9,7 +9,7 @@
 #include <Arduino.h>
 #include <MFRC522.h>
 
-MFRC522_UART::MFRC522_UART(HardwareSerial &serial, byte resetPin)
+MFRC522_UART::MFRC522_UART(HardwareSerial &serial, uint8_t resetPin)
 	: _resetPowerDownPin(resetPin), _serialPort(serial) {}
 
 bool MFRC522_UART::PCD_Init() {
@@ -26,42 +26,42 @@ bool MFRC522_UART::PCD_Init() {
   return false;
 }
 
-void MFRC522_UART::PCD_WriteRegister(MFRC522::PCD_Register reg, byte value) {
+void MFRC522_UART::PCD_WriteRegister(MFRC522::PCD_Register reg, uint8_t value) {
 	// Mask used for writing to registers. See section "8.1.3.3 UART framing" from datasheet.
 	_serialPort.write(0x7F & reg);
 	// Waits for confirmation
   	while (!_serialPort.available());
-	// Removes confirmation byte from input buffer
+	// Removes confirmation uint8_t from input buffer
   	_serialPort.read();
 	// Writes data
 	_serialPort.write(value);
 }
 
 void MFRC522_UART::PCD_WriteRegister(
-  	MFRC522::PCD_Register reg, byte count, byte *values) {
+  	MFRC522::PCD_Register reg, uint8_t count, uint8_t *values) {
 
-	for (byte index = 0; index < count; ++index)
+	for (uint8_t index = 0; index < count; ++index)
     	this->PCD_WriteRegister(reg, values[index]);
 }
 
-byte MFRC522_UART::PCD_ReadRegister(MFRC522::PCD_Register reg) {
+uint8_t MFRC522_UART::PCD_ReadRegister(MFRC522::PCD_Register reg) {
 	// Mask used for reading from registers. See section "8.1.3.3 UART framing" from datasheet.
 	_serialPort.write(0x80 | reg);
 	// Waits for input
 	while (!_serialPort.available());
 	// Reads data
-	byte value = _serialPort.read();
+	uint8_t value = _serialPort.read();
 	return value;
 }
 
 void MFRC522_UART::PCD_ReadRegister(
-  	MFRC522::PCD_Register reg, byte count, byte *values, byte rxAlign) {
+  	MFRC522::PCD_Register reg, uint8_t count, uint8_t *values, uint8_t rxAlign) {
 
-	byte index = 0;
+	uint8_t index = 0;
 	// Only update bit positions rxAlign..7 in values[0]
 	if (rxAlign) {
-		byte mask = 0xFF << rxAlign;
-		byte value = this->PCD_ReadRegister(reg);
+		uint8_t mask = 0xFF << rxAlign;
+		uint8_t value = this->PCD_ReadRegister(reg);
 		// Apply mask to both current value of values[0] and the new data in value.
 		values[0] = (values[0] & ~mask) | (value & mask);
 		++index;

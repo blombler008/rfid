@@ -29,34 +29,34 @@
  * @return STATUS_OK on success, STATUS_??? otherwise.
  */
 MFRC522::StatusCode MFRC522Extended::PICC_Select(	Uid *uid,			///< Pointer to Uid struct. Normally output, but can also be used to supply a known UID.
-											byte validBits		///< The number of known UID bits supplied in *uid. Normally 0. If set you must also supply uid->size.
+											uint8_t validBits		///< The number of known UID bits supplied in *uid. Normally 0. If set you must also supply uid->size.
 										 ) {
 	bool uidComplete;
 	bool selectDone;
 	bool useCascadeTag;
-	byte cascadeLevel = 1;
+	uint8_t cascadeLevel = 1;
 	MFRC522::StatusCode result;
-	byte count;
-	byte index;
-	byte uidIndex;					// The first index in uid->uidByte[] that is used in the current Cascade Level.
+	uint8_t count;
+	uint8_t index;
+	uint8_t uidIndex;					// The first index in uid->uidByte[] that is used in the current Cascade Level.
 	int8_t currentLevelKnownBits;		// The number of known UID bits in the current Cascade Level.
-	byte buffer[9];					// The SELECT/ANTICOLLISION commands uses a 7 byte standard frame + 2 bytes CRC_A
-	byte bufferUsed;				// The number of bytes used in the buffer, ie the number of bytes to transfer to the FIFO.
-	byte rxAlign;					// Used in BitFramingReg. Defines the bit position for the first bit received.
-	byte txLastBits;				// Used in BitFramingReg. The number of valid bits in the last transmitted byte. 
-	byte *responseBuffer;
-	byte responseLength;
+	uint8_t buffer[9];					// The SELECT/ANTICOLLISION commands uses a 7 uint8_t standard frame + 2 bytes CRC_A
+	uint8_t bufferUsed;				// The number of bytes used in the buffer, ie the number of bytes to transfer to the FIFO.
+	uint8_t rxAlign;					// Used in BitFramingReg. Defines the bit position for the first bit received.
+	uint8_t txLastBits;				// Used in BitFramingReg. The number of valid bits in the last transmitted uint8_t. 
+	uint8_t *responseBuffer;
+	uint8_t responseLength;
 	
 	// Description of buffer structure:
-	//		Byte 0: SEL 				Indicates the Cascade Level: PICC_CMD_SEL_CL1, PICC_CMD_SEL_CL2 or PICC_CMD_SEL_CL3
-	//		Byte 1: NVB					Number of Valid Bits (in complete command, not just the UID): High nibble: complete bytes, Low nibble: Extra bits. 
-	//		Byte 2: UID-data or CT		See explanation below. CT means Cascade Tag.
-	//		Byte 3: UID-data
-	//		Byte 4: UID-data
-	//		Byte 5: UID-data
-	//		Byte 6: BCC					Block Check Character - XOR of bytes 2-5
-	//		Byte 7: CRC_A
-	//		Byte 8: CRC_A
+	//		uint8_t 0: SEL 				Indicates the Cascade Level: PICC_CMD_SEL_CL1, PICC_CMD_SEL_CL2 or PICC_CMD_SEL_CL3
+	//		uint8_t 1: NVB					Number of Valid Bits (in complete command, not just the UID): High nibble: complete bytes, Low nibble: Extra bits. 
+	//		uint8_t 2: UID-data or CT		See explanation below. CT means Cascade Tag.
+	//		uint8_t 3: UID-data
+	//		uint8_t 4: UID-data
+	//		uint8_t 5: UID-data
+	//		uint8_t 6: BCC					Block Check Character - XOR of bytes 2-5
+	//		uint8_t 7: CRC_A
+	//		uint8_t 8: CRC_A
 	// The BCC and CRC_A are only transmitted if we know all the UID bits of the current Cascade Level.
 	//
 	// Description of bytes 2-5: (Section 6.5.4 of the ISO/IEC 14443-3 draft: UID contents and cascade levels)
@@ -80,7 +80,7 @@ MFRC522::StatusCode MFRC522Extended::PICC_Select(	Uid *uid,			///< Pointer to Ui
 	// Repeat Cascade Level loop until we have a complete UID.
 	uidComplete = false;
 	while (!uidComplete) {
-		// Set the Cascade Level in the SEL byte, find out if we need to use the Cascade Tag in byte 2.
+		// Set the Cascade Level in the SEL uint8_t, find out if we need to use the Cascade Tag in uint8_t 2.
 		switch (cascadeLevel) {
 			case 1:
 				buffer[0] = PICC_CMD_SEL_CL1;
@@ -115,9 +115,9 @@ MFRC522::StatusCode MFRC522Extended::PICC_Select(	Uid *uid,			///< Pointer to Ui
 		if (useCascadeTag) {
 			buffer[index++] = PICC_CMD_CT;
 		}
-		byte bytesToCopy = currentLevelKnownBits / 8 + (currentLevelKnownBits % 8 ? 1 : 0); // The number of bytes needed to represent the known bits for this level.
+		uint8_t bytesToCopy = currentLevelKnownBits / 8 + (currentLevelKnownBits % 8 ? 1 : 0); // The number of bytes needed to represent the known bits for this level.
 		if (bytesToCopy) {
-			byte maxBytes = useCascadeTag ? 3 : 4; // Max 4 bytes in each Cascade Level. Only 3 left if we use the Cascade Tag
+			uint8_t maxBytes = useCascadeTag ? 3 : 4; // Max 4 bytes in each Cascade Level. Only 3 left if we use the Cascade Tag
 			if (bytesToCopy > maxBytes) {
 				bytesToCopy = maxBytes;
 			}
@@ -169,11 +169,11 @@ MFRC522::StatusCode MFRC522Extended::PICC_Select(	Uid *uid,			///< Pointer to Ui
 			// Transmit the buffer and receive the response.
 			result = PCD_TransceiveData(buffer, bufferUsed, responseBuffer, &responseLength, &txLastBits, rxAlign);
 			if (result == STATUS_COLLISION) { // More than one PICC in the field => collision.
-				byte valueOfCollReg = _dev->PCD_ReadRegister(CollReg); // CollReg[7..0] bits are: ValuesAfterColl reserved CollPosNotValid CollPos[4:0]
+				uint8_t valueOfCollReg = _dev->PCD_ReadRegister(CollReg); // CollReg[7..0] bits are: ValuesAfterColl reserved CollPosNotValid CollPos[4:0]
 				if (valueOfCollReg & 0x20) { // CollPosNotValid
 					return STATUS_COLLISION; // Without a valid collision position we cannot continue
 				}
-				byte collisionPos = valueOfCollReg & 0x1F; // Values 0-31, 0 means bit 32.
+				uint8_t collisionPos = valueOfCollReg & 0x1F; // Values 0-31, 0 means bit 32.
 				if (collisionPos == 0) {
 					collisionPos = 32;
 				}
@@ -183,7 +183,7 @@ MFRC522::StatusCode MFRC522Extended::PICC_Select(	Uid *uid,			///< Pointer to Ui
 				// Choose the PICC with the bit set.
 				currentLevelKnownBits = collisionPos;
 				count			= (currentLevelKnownBits - 1) % 8; // The bit to modify
-				index			= 1 + (currentLevelKnownBits / 8) + (count ? 1 : 0); // First byte is index 0.
+				index			= 1 + (currentLevelKnownBits / 8) + (count ? 1 : 0); // First uint8_t is index 0.
 				buffer[index]	|= (1 << count);
 			}
 			else if (result != STATUS_OK) {
@@ -212,7 +212,7 @@ MFRC522::StatusCode MFRC522Extended::PICC_Select(	Uid *uid,			///< Pointer to Ui
 		}
 		
 		// Check response SAK (Select Acknowledge)
-		if (responseLength != 3 || txLastBits != 0) { // SAK must be exactly 24 bits (1 byte + CRC_A).
+		if (responseLength != 3 || txLastBits != 0) { // SAK must be exactly 24 bits (1 uint8_t + CRC_A).
 			return STATUS_ERROR;
 		}
 		// Verify CRC_A - do our own calculation and store the control in buffer[2..3] - those bytes are not needed anymore.
@@ -345,11 +345,11 @@ MFRC522::StatusCode MFRC522Extended::PICC_Select(	Uid *uid,			///< Pointer to Ui
 MFRC522::StatusCode MFRC522Extended::PICC_RequestATS(Ats *ats) 
 {
 	// TODO unused variable
-	//byte count;
+	//uint8_t count;
 	MFRC522::StatusCode result;
 
-	byte bufferATS[FIFO_SIZE];
-	byte bufferSize = FIFO_SIZE;
+	uint8_t bufferATS[FIFO_SIZE];
+	uint8_t bufferSize = FIFO_SIZE;
 
 	memset(bufferATS, 0, FIFO_SIZE);
 
@@ -382,7 +382,7 @@ MFRC522::StatusCode MFRC522Extended::PICC_RequestATS(Ats *ats)
 	// Set the ats structure data
 	ats->size = bufferATS[0];
 
-	// T0 byte:
+	// T0 uint8_t:
 	//
 	// b8 | b7 | b6 | b5 | b4 | b3 | b2 | b1 | Meaning
 	//----+----+----+----+----+----+----+----+---------------------------
@@ -432,7 +432,7 @@ MFRC522::StatusCode MFRC522Extended::PICC_RequestATS(Ats *ats)
 				ats->fsc = 128;
 				break;
 			case 0x08:
-				// This value cannot be hold by a byte
+				// This value cannot be hold by a uint8_t
 				// The reason I ignore it is that MFRC255 FIFO is 64 bytes so this is not a possible value (or atleast it shouldn't)
 				//ats->fsc = 256;
 				break;
@@ -533,9 +533,9 @@ MFRC522::StatusCode MFRC522Extended::PICC_PPS()
 {
 	StatusCode result;
 
-	byte ppsBuffer[4];
-	byte ppsBufferSize = 4;
-	// Start byte: The start byte (PPS) consists of two parts:
+	uint8_t ppsBuffer[4];
+	uint8_t ppsBufferSize = 4;
+	// Start uint8_t: The start uint8_t (PPS) consists of two parts:
 	//  –The upper nibble(b8–b5) is set to’D'to identify the PPS. All other values are RFU.
 	//  -The lower nibble(b4–b1), which is called the ‘card identifier’ (CID), defines the logical number of the addressed card.
 	ppsBuffer[0] = 0xD0;	// CID is hardcoded as 0 in RATS
@@ -552,8 +552,8 @@ MFRC522::StatusCode MFRC522Extended::PICC_PPS()
 	if (result == STATUS_OK)
 	{
 		// Enable CRC for T=CL
-		byte txReg = _dev->PCD_ReadRegister(TxModeReg) | 0x80;
-		byte rxReg = _dev->PCD_ReadRegister(RxModeReg) | 0x80;
+		uint8_t txReg = _dev->PCD_ReadRegister(TxModeReg) | 0x80;
+		uint8_t rxReg = _dev->PCD_ReadRegister(RxModeReg) | 0x80;
 
 		_dev->PCD_WriteRegister(TxModeReg, txReg);
 		_dev->PCD_WriteRegister(RxModeReg, rxReg);
@@ -573,12 +573,12 @@ MFRC522::StatusCode MFRC522Extended::PICC_PPS(TagBitRates sendBitRate,	         
 	StatusCode result;
 
 	// TODO not used
-	//byte txReg = PCD_ReadRegister(TxModeReg) & 0x8F;
-	//byte rxReg = PCD_ReadRegister(RxModeReg) & 0x8F;
+	//uint8_t txReg = PCD_ReadRegister(TxModeReg) & 0x8F;
+	//uint8_t rxReg = PCD_ReadRegister(RxModeReg) & 0x8F;
 
-	byte ppsBuffer[5];
-	byte ppsBufferSize = 5;
-	// Start byte: The start byte (PPS) consists of two parts:
+	uint8_t ppsBuffer[5];
+	uint8_t ppsBufferSize = 5;
+	// Start uint8_t: The start uint8_t (PPS) consists of two parts:
 	//  –The upper nibble(b8–b5) is set to’D'to identify the PPS. All other values are RFU.
 	//  -The lower nibble(b4–b1), which is called the ‘card identifier’ (CID), defines the logical number of the addressed card.
 	ppsBuffer[0] = 0xD0;	// CID is hardcoded as 0 in RATS
@@ -600,10 +600,10 @@ MFRC522::StatusCode MFRC522Extended::PICC_PPS(TagBitRates sendBitRate,	         
 	if (result == STATUS_OK)
 	{
 		// Make sure it is an answer to our PPS
-		// We should receive our PPS byte and 2 CRC bytes
+		// We should receive our PPS uint8_t and 2 CRC bytes
 		if ((ppsBufferSize == 3) && (ppsBuffer[0] == 0xD0)) {
-			byte txReg = _dev->PCD_ReadRegister(TxModeReg) & 0x8F;
-			byte rxReg = _dev->PCD_ReadRegister(RxModeReg) & 0x8F;
+			uint8_t txReg = _dev->PCD_ReadRegister(TxModeReg) & 0x8F;
+			uint8_t rxReg = _dev->PCD_ReadRegister(RxModeReg) & 0x8F;
 
 			// Set bit rate and enable CRC for T=CL
 			txReg = (txReg & 0x8F) | ((receiveBitRate & 0x03) << 4) | 0x80;
@@ -663,22 +663,22 @@ MFRC522::StatusCode MFRC522Extended::PICC_PPS(TagBitRates sendBitRate,	         
 MFRC522::StatusCode MFRC522Extended::TCL_Transceive(PcbBlock *send, PcbBlock *back)
 {
 	MFRC522::StatusCode result;
-	byte inBuffer[FIFO_SIZE];
-	byte inBufferSize = FIFO_SIZE;
-	byte outBuffer[send->inf.size + 5]; // PCB + CID + NAD + INF + EPILOGUE (CRC)
-	byte outBufferOffset = 1;
-	byte inBufferOffset = 1;
+	uint8_t inBuffer[FIFO_SIZE];
+	uint8_t inBufferSize = FIFO_SIZE;
+	uint8_t outBuffer[send->inf.size + 5]; // PCB + CID + NAD + INF + EPILOGUE (CRC)
+	uint8_t outBufferOffset = 1;
+	uint8_t inBufferOffset = 1;
 
-	// Set the PCB byte
+	// Set the PCB uint8_t
 	outBuffer[0] = send->prologue.pcb;
 
-	// Set the CID byte if available
+	// Set the CID uint8_t if available
 	if (send->prologue.pcb & 0x08) {
 		outBuffer[outBufferOffset] = send->prologue.cid;
 		outBufferOffset++;
 	}
 
-	// Set the NAD byte if available
+	// Set the NAD uint8_t if available
 	if (send->prologue.pcb & 0x04) {
 		outBuffer[outBufferOffset] = send->prologue.nad;
 		outBufferOffset++;
@@ -691,7 +691,7 @@ MFRC522::StatusCode MFRC522Extended::TCL_Transceive(PcbBlock *send, PcbBlock *ba
 	}
 
 	// Is the CRC enabled for transmission?
-	byte txModeReg = _dev->PCD_ReadRegister(TxModeReg);
+	uint8_t txModeReg = _dev->PCD_ReadRegister(TxModeReg);
 	if ((txModeReg & 0x80) != 0x80) {
 		// Calculate CRC_A
 		result = PCD_CalculateCRC(outBuffer, outBufferOffset, &outBuffer[outBufferOffset]);
@@ -711,20 +711,20 @@ MFRC522::StatusCode MFRC522Extended::TCL_Transceive(PcbBlock *send, PcbBlock *ba
 	// We want to turn the received array back to a PcbBlock
 	back->prologue.pcb = inBuffer[0];
 
-	// CID byte is present?
+	// CID uint8_t is present?
 	if (send->prologue.pcb & 0x08) {
 		back->prologue.cid = inBuffer[inBufferOffset];
 		inBufferOffset++;
 	}
 
-	// NAD byte is present?
+	// NAD uint8_t is present?
 	if (send->prologue.pcb & 0x04) {
 		back->prologue.nad = inBuffer[inBufferOffset];
 		inBufferOffset++;
 	}
 
 	// Check if CRC is taken care of by MFRC522
-	byte rxModeReg = _dev->PCD_ReadRegister(TxModeReg);
+	uint8_t rxModeReg = _dev->PCD_ReadRegister(TxModeReg);
 	if ((rxModeReg & 0x80) != 0x80) {
 		Serial.print("CRC is not taken care of by MFRC522: ");
 		Serial.println(rxModeReg, HEX);
@@ -736,7 +736,7 @@ MFRC522::StatusCode MFRC522Extended::TCL_Transceive(PcbBlock *send, PcbBlock *ba
 		}
 
 		// Verify CRC_A - do our own calculation and store the control in controlBuffer.
-		byte controlBuffer[2];
+		uint8_t controlBuffer[2];
 		MFRC522::StatusCode status = PCD_CalculateCRC(inBuffer, inBufferSize - 2, controlBuffer);
 		if (status != STATUS_OK) {
 			return status;
@@ -772,15 +772,15 @@ MFRC522::StatusCode MFRC522Extended::TCL_Transceive(PcbBlock *send, PcbBlock *ba
 /**
  * Send an I-Block (Application)
  */
-MFRC522::StatusCode MFRC522Extended::TCL_Transceive(TagInfo *tag, byte *sendData, byte sendLen, byte *backData, byte *backLen)
+MFRC522::StatusCode MFRC522Extended::TCL_Transceive(TagInfo *tag, uint8_t *sendData, uint8_t sendLen, uint8_t *backData, uint8_t *backLen)
 {
 	MFRC522::StatusCode result;
 
 	PcbBlock out;
 	PcbBlock in;
-	byte outBuffer[FIFO_SIZE];
-	byte outBufferSize = FIFO_SIZE;
-	byte totalBackLen = *backLen;
+	uint8_t outBuffer[FIFO_SIZE];
+	uint8_t outBufferSize = FIFO_SIZE;
+	uint8_t totalBackLen = *backLen;
 
 	// This command sends an I-Block
 	out.prologue.pcb = 0x02;
@@ -837,8 +837,8 @@ MFRC522::StatusCode MFRC522Extended::TCL_Transceive(TagInfo *tag, byte *sendData
 	// Send an ACK to receive more data
 	// TODO: Should be checked I've never needed to send an ACK
 	while (in.prologue.pcb & 0x10) {
-		byte ackData[FIFO_SIZE];
-		byte ackDataSize = FIFO_SIZE;
+		uint8_t ackData[FIFO_SIZE];
+		uint8_t ackDataSize = FIFO_SIZE;
 
 		result = TCL_TransceiveRBlock(tag, true, ackData, &ackDataSize);
 		if (result != STATUS_OK)
@@ -859,14 +859,14 @@ MFRC522::StatusCode MFRC522Extended::TCL_Transceive(TagInfo *tag, byte *sendData
 /**
  * Send R-Block to the PICC.
  */
-MFRC522::StatusCode MFRC522Extended::TCL_TransceiveRBlock(TagInfo *tag, bool ack, byte *backData, byte *backLen)
+MFRC522::StatusCode MFRC522Extended::TCL_TransceiveRBlock(TagInfo *tag, bool ack, uint8_t *backData, uint8_t *backLen)
 {
 	MFRC522::StatusCode result;
 
 	PcbBlock out;
 	PcbBlock in;
-	byte outBuffer[FIFO_SIZE];
-	byte outBufferSize = FIFO_SIZE;
+	uint8_t outBuffer[FIFO_SIZE];
+	uint8_t outBufferSize = FIFO_SIZE;
 
 	// This command sends an R-Block
 	if (ack)
@@ -923,10 +923,10 @@ MFRC522::StatusCode MFRC522Extended::TCL_TransceiveRBlock(TagInfo *tag, bool ack
 MFRC522::StatusCode MFRC522Extended::TCL_Deselect(TagInfo *tag)
 {
 	MFRC522::StatusCode result;
-	byte outBuffer[4];
-	byte outBufferSize = 1;
-	byte inBuffer[FIFO_SIZE];
-	byte inBufferSize = FIFO_SIZE;
+	uint8_t outBuffer[4];
+	uint8_t outBufferSize = 1;
+	uint8_t inBuffer[FIFO_SIZE];
+	uint8_t inBufferSize = FIFO_SIZE;
 
 	outBuffer[0] = 0xC2;
 	if (tag->ats.tc1.supportsCID)
@@ -961,7 +961,7 @@ MFRC522::PICC_Type MFRC522Extended::PICC_GetType(TagInfo *tag		///< The TagInfo 
 	// 3.2 Coding of Select Acknowledge (SAK)
 	// ignore 8-bit (iso14443 starts with LSBit = bit 1)
 	// fixes wrong type for manufacturer Infineon (http://nfc-tools.org/index.php?title=ISO14443A)
-	byte sak = tag->uid.sak & 0x7F;
+	uint8_t sak = tag->uid.sak & 0x7F;
 	switch (sak) {
 		case 0x04:	return PICC_TYPE_NOT_COMPLETE;	// UID not complete
 		case 0x09:	return PICC_TYPE_MIFARE_MINI;
@@ -999,7 +999,7 @@ void MFRC522Extended::PICC_DumpToSerial(TagInfo *tag)
 		case PICC_TYPE_MIFARE_1K:
 		case PICC_TYPE_MIFARE_4K:
 			// All keys are set to FFFFFFFFFFFFh at chip delivery from the factory.
-			for (byte i = 0; i < 6; i++) {
+			for (uint8_t i = 0; i < 6; i++) {
 				key.keyByte[i] = 0xFF;
 			}
 			PICC_DumpMifareClassicToSerial(&tag->uid, piccType, &key);
@@ -1048,7 +1048,7 @@ void MFRC522Extended::PICC_DumpDetailsToSerial(TagInfo *tag	///< Pointer to TagI
 
 	// UID
 	Serial.print(F("Card UID:"));
-	for (byte i = 0; i < tag->uid.size; i++) {
+	for (uint8_t i = 0; i < tag->uid.size; i++) {
 		if (tag->uid.uidByte[i] < 0x10)
 			Serial.print(F(" 0"));
 		else
@@ -1075,9 +1075,9 @@ void MFRC522Extended::PICC_DumpDetailsToSerial(TagInfo *tag	///< Pointer to TagI
 void MFRC522Extended::PICC_DumpISO14443_4(TagInfo *tag)
 {
 	// ATS
-	if (tag->ats.size > 0x00) {	// The first byte is the ATS length including the length byte
+	if (tag->ats.size > 0x00) {	// The first uint8_t is the ATS length including the length uint8_t
 		Serial.print(F("Card ATS:"));
-		for (byte offset = 0; offset < tag->ats.size; offset++) {
+		for (uint8_t offset = 0; offset < tag->ats.size; offset++) {
 			if (tag->ats.data[offset] < 0x10)
 				Serial.print(F(" 0"));
 			else
@@ -1100,8 +1100,8 @@ void MFRC522Extended::PICC_DumpISO14443_4(TagInfo *tag)
  * @return bool
  */
 bool MFRC522Extended::PICC_IsNewCardPresent() {
-	byte bufferATQA[2];
-	byte bufferSize = sizeof(bufferATQA);
+	uint8_t bufferATQA[2];
+	uint8_t bufferSize = sizeof(bufferATQA);
 
 	// Reset baud rates
 	_dev->PCD_WriteRegister(TxModeReg, 0x00);
