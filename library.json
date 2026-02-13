@@ -1,0 +1,50 @@
+{
+  "name": "MFRC522",
+  "version": "2.0.0",
+  "description": "Arduino RFID Library for MFRC522 (SPI, I2C and UART) with asynchronous callbacks",
+  "keywords": [
+    "rfid",
+    "mfrc522",
+    "spi",
+    "i2c",
+    "uart",
+    "mifare",
+    "iso14443a",
+    "esp32"
+  ],
+  "authors": [
+    {
+      "name": "GithubCommunity"
+    },
+    {
+      "name": "miguelbalboa"
+    },
+    {
+      "name": "dirkx@webweaving.org"
+    },
+    {
+      "name": "blombler008"
+    }
+  ],
+  "maintainers": [
+    {
+      "name": "GithubCommunity"
+    },
+    {
+      "name": "dirkx@webweaving.org"
+    }
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/blombler008/rfid"
+  },
+  "frameworks": [
+    "arduino"
+  ],
+  "platforms": [
+    "espressif32"
+  ],
+  "build": {
+    "srcDir": "src"
+  }
+}
