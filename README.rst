@@ -16,11 +16,17 @@ Read and write different types of Radio-Frequency IDentification (RFID) cards
 on your Arduino using a RC522 based reader connected via the Serial Peripheral
 Interface (SPI) interface, the i2c interface or the UART.
 
+**Version 2.0.0** - Enhanced with improved platform support (esp32), asynchronous callbacks, 
+and fixed critical byte type ambiguity issues across all interfaces.
+
 
 .. _development:
 Development
 ----------
-**The development by owner miguelbalboa has ended**. Further development will be done by community. This library is sporadically maintained. You can make pull request if you have developed a fix. Support/issues should be solved by community.
+**Active community development**. This library is maintained by the Github community with 
+focus on multiple interface support (SPI, I2C, UART) and asynchronous callbacks. Recent updates 
+include improved platform compatibility and critical bug fixes. You can make pull requests 
+to contribute fixes and features. Support/issues should be solved by the community.
 
 
 .. _before buy:
@@ -44,6 +50,8 @@ What works and not?
   #. Firmware self check of MFRC522.
   #. Set the UID, write to sector 0, and unbrick Chinese UID changeable MIFARE cards.
   #. Manage the SPI chip select pin (aka SS, SDA)
+  #. SPI, I2C, and UART interface support with standardized byte type handling.
+  #. Asynchronous callbacks for RFID card detection events.
 
 * **Works partially**
 
@@ -62,8 +70,6 @@ What works and not?
   #. With Arduino Yun see `#111 <https://github.com/miguelbalboa/rfid/issues/111>`_, not supported by software.
   #. With Intel Galileo (Gen2) see `#310 <https://github.com/miguelbalboa/rfid/issues/310>`__, not supported by software.
   #. Power reduction modes `#269 <https://github.com/miguelbalboa/rfid/issues/269>`_, not supported by software.
-  #. I2C instead of SPI `#240 <https://github.com/miguelbalboa/rfid/issues/240>`_, not supported by software.
-  #. UART instead of SPI `#281 <https://github.com/miguelbalboa/rfid/issues/281>`_, not supported by software.
   
 * **Need more?**
 
@@ -85,7 +91,10 @@ Compatible boards
 
 **!!!Only for advanced users!!!**
 
-This library is compatible with the Teensy and ESP8266 if you use the board plugin of the Arduino IDE. Not all examples are available for every board. You also have to change pins. See `pin layout`_.
+This library is compatible with the Teensy, ESP8266, and ESP32 if you use the board plugin of the Arduino IDE. 
+Not all examples are available for every board. You also have to change pins. See `pin layout`_.
+
+The library now includes enhanced support for ESP32 platforms with improved metadata through library.json.
 
 Some user made some patches/suggestions/ports for other boards:
 
@@ -94,7 +103,7 @@ Some user made some patches/suggestions/ports for other boards:
 * ESP8266 (native): https://github.com/miguelbalboa/rfid/pull/235
 * LPCOPen (in C): https://github.com/miguelbalboa/rfid/pull/258
 
-Note that the main target/support of library is still Arduino.
+Note that the main target/support of library now includes Arduino, ESP32, and other modern platforms.
 
 .. _support issue:
 Support/issue
@@ -227,6 +236,16 @@ Security
 
 
 .. _troubleshooting:
+Recent Fixes (v2.0.0)
+----------
+
+**Byte Type Ambiguity** - Fixed a critical issue where the ``byte`` type was causing ambiguous 
+type resolution across different implementations (SPI, I2C, UART). This has been standardized 
+to use consistent type handling across all interfaces, improving cross-platform compatibility.
+If you were experiencing compiler errors mentioning "byte is ambiguous", this version resolves those issues.
+
+
+.. _troubleshooting_section:
 Troubleshooting
 -------
 
@@ -315,6 +334,22 @@ For more information, please refer to https://unlicense.org/
 
 
 .. _dependency:
+Library Metadata
+----------
+
+This library now includes comprehensive metadata through **library.json** for improved IDE support
+and dependency management. The following platforms and frameworks are officially supported:
+
+* **Frameworks**: Arduino
+* **Platforms**: ESP32, and compatible Arduino-based boards
+* **Interfaces**: SPI, I2C, UART
+* **Supported Cards**: MIFARE Classic (1k, 4k, Mini), MIFARE Ultralight, NTAG203, NTAG216
+
+The library.json file enables automatic platform detection and dependency resolution in modern
+IDEs like PlatformIO and Arduino IDE.
+
+
+.. _dependency_list:
 Dependency
 ----------
 
@@ -348,7 +383,15 @@ It has been extended with functionality to alter sector 0 on Chinese UID changea
 
 Maintained by miguelbalboa until 2016.
 Maintained by Rotzbua from 2016 until 2018.
-Updated b dirkx from mid 2018.
+Updated by dirkx from mid 2018.
+
+**Recent Updates (v2.0.0)**:
+* Fixed critical byte type ambiguity issue across all interface implementations (SPI, I2C, UART).
+* Added comprehensive library.json metadata for improved IDE and platform support.
+* Enhanced support for modern platforms including ESP32.
+* Implemented asynchronous callback functionality for improved event handling.
+* Removed outdated contribution guidelines and updated maintainer information.
+* Contributors: GithubCommunity, miguelbalboa, dirkx@webweaving.org, blombler008
 
 .. _arduino: https://arduino.cc/
 .. _ebay: https://www.ebay.com/
