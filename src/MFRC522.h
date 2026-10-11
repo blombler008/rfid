@@ -442,11 +442,11 @@ protected:
 
 class MFRC522_BUS_DEVICE {
 public:
-	virtual bool PCD_Init();
-        virtual void PCD_WriteRegister(MFRC522::PCD_Register reg, uint8_t value);
-        virtual void PCD_WriteRegister(MFRC522::PCD_Register reg, uint8_t count, uint8_t *values);
-        virtual uint8_t PCD_ReadRegister(MFRC522::PCD_Register reg);
-        virtual void PCD_ReadRegister(MFRC522::PCD_Register reg, uint8_t count, uint8_t *values, uint8_t rxAlign = 0);
+	virtual bool PCD_Init() = 0;
+	virtual void PCD_WriteRegister(MFRC522::PCD_Register reg, uint8_t value) = 0;
+	virtual void PCD_WriteRegister(MFRC522::PCD_Register reg, uint8_t count, uint8_t *values) = 0;
+	virtual uint8_t PCD_ReadRegister(MFRC522::PCD_Register reg) = 0;
+	virtual void PCD_ReadRegister(MFRC522::PCD_Register reg, uint8_t count, uint8_t *values, uint8_t rxAlign = 0) = 0;
 };
 
 #include <Wire.h>
