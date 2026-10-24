@@ -492,18 +492,18 @@ protected:
 };
 
 
-class MFRC522_UART : public MFRC522_BUS_DEVICE {
-public:
-	MFRC522_UART(HardwareSerial &serial = Serial, uint8_t _resetPowerDownPin = UNUSED_PIN);
-	bool PCD_Init();
-	void PCD_WriteRegister(MFRC522::PCD_Register reg, uint8_t value);
-	void PCD_WriteRegister(MFRC522::PCD_Register reg, uint8_t count, uint8_t *values);
-	uint8_t PCD_ReadRegister(MFRC522::PCD_Register reg);
-	void PCD_ReadRegister(MFRC522::PCD_Register reg, uint8_t count, uint8_t *values, uint8_t rxAlign = 0);
+// class MFRC522_UART : public MFRC522_BUS_DEVICE {
+// public:
+// 	MFRC522_UART(HardwareSerial &serial = Serial, uint8_t _resetPowerDownPin = UNUSED_PIN);
+// 	bool PCD_Init();
+// 	void PCD_WriteRegister(MFRC522::PCD_Register reg, uint8_t value);
+// 	void PCD_WriteRegister(MFRC522::PCD_Register reg, uint8_t count, uint8_t *values);
+// 	uint8_t PCD_ReadRegister(MFRC522::PCD_Register reg);
+// 	void PCD_ReadRegister(MFRC522::PCD_Register reg, uint8_t count, uint8_t *values, uint8_t rxAlign = 0);
 
-private:
-	uint8_t _resetPowerDownPin;
-	HardwareSerial &_serialPort; // Defaults to Serial (standard serial port)
-};
+// private:
+// 	uint8_t _resetPowerDownPin;
+// 	HardwareSerial &_serialPort; // Defaults to Serial (standard serial port)
+// };
 
 #endif
